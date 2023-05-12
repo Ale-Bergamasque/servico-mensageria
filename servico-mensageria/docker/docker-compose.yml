@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+
+  msg-db:
+    container_name: msg_db
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: msg-db
+    ports:
+      - "5440:5432"
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3.10-management
+    restart: always
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    ports:
+      - "5672:5672"
+      - "15672:15672"
