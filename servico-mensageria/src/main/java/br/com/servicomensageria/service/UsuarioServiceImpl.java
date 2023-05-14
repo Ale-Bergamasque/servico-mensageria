@@ -5,7 +5,8 @@ import br.com.servicomensageria.model.Usuario;
 import br.com.servicomensageria.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.flywaydb.core.internal.util.JsonUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -70,7 +71,13 @@ public class UsuarioServiceImpl implements UsuarioService{
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new DadosErroValidacao(new ErroDto("id", "Não foram encontrados dados para o ID informado.")));
         }
         Usuario model = repository.getReferenceById(id);
-        return ResponseEntity.status(HttpStatus.OK).body(new DadosListagemUsuario(model));
+        return ResponseEntity.status(HttpStatus.OK).body(new DadosListagemUsuarioDto(model));
+    }
+
+    @Override
+    public ResponseEntity<Page<DadosListagemUsuarioDto>> listarUsuarios(Pageable paginacao) {
+        Page<DadosListagemUsuarioDto> model = repository.findAll(paginacao).map(DadosListagemUsuarioDto::new);
+        return ResponseEntity.status(HttpStatus.OK).body(model);
     }
 
     private List<ErroDto> validarDadosCadastro(DadosCadastroUsuarioDto dadosCadastro) {
