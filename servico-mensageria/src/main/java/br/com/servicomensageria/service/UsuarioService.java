@@ -8,5 +8,6 @@ public interface UsuarioService {
 
     ResponseEntity excluirUsuário(Long id);
     ResponseEntity atualilzarEmailUsuario(Long id, EmailUsuarioDto dto);
-    ResponseEntity cadastro(DadosCadastroUsuarioDto dadosCadastro);
+    ResponseEntity cadastroUsuario(DadosCadastroUsuarioDto dadosCadastro);
+    ResponseEntity buscarUsuario(Long id);
 }

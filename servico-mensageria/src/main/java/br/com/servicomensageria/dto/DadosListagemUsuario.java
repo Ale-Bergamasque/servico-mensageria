@@ -4,17 +4,16 @@ import br.com.servicomensageria.model.Usuario;
 import lombok.Getter;
 
 @Getter
-public class DadosDetalhamentoUsuarioDto {
+public class DadosListagemUsuario {
 
     private final Long id;
-
     private final String nome;
 
     private final String email;
 
     private final String cpf;
 
-    public DadosDetalhamentoUsuarioDto(Usuario model) {
+    public DadosListagemUsuario(Usuario model) {
         this.id = model.getId();
         this.nome = model.getNome();
         this.email = model.getEmail();

@@ -1,21 +1,17 @@
 package br.com.servicomensageria.service;
 
-import br.com.servicomensageria.dto.DadosCadastroUsuarioDto;
-import br.com.servicomensageria.dto.DadosDetalhamentoUsuarioDto;
-import br.com.servicomensageria.dto.EmailUsuarioDto;
-import br.com.servicomensageria.dto.ErroDto;
+import br.com.servicomensageria.dto.*;
 import br.com.servicomensageria.model.Usuario;
 import br.com.servicomensageria.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.var;
+import org.flywaydb.core.internal.util.JsonUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,17 +21,13 @@ public class UsuarioServiceImpl implements UsuarioService{
 
     @Override
     @Transactional
-    public ResponseEntity cadastro(DadosCadastroUsuarioDto dadosCadastro) {
-        if (repository.existsByCpf(dadosCadastro.getCpf())){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuario com o cpf " + dadosCadastro.getCpf() + " já cadastrado!");
-        }
-
+    public ResponseEntity cadastroUsuario(DadosCadastroUsuarioDto dadosCadastro) {
         List<ErroDto> erros = validarDadosCadastro(dadosCadastro);
         if (!erros.isEmpty()){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Um ou mais campos informados incorretamente!");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erros.stream().map(DadosErroValidacao::new));
         }
 
-        var model = new Usuario(dadosCadastro);
+        Usuario model = new Usuario(dadosCadastro);
 
         repository.save(model);
         return ResponseEntity.status(HttpStatus.CREATED).body(new DadosDetalhamentoUsuarioDto(model));
@@ -71,8 +63,22 @@ public class UsuarioServiceImpl implements UsuarioService{
         return ResponseEntity.status(HttpStatus.OK).body("Usuário atualizado com sucesso!");
     }
 
+    @Override
+    public ResponseEntity buscarUsuario(Long id) {
+        String mensagem = "ERROR: Id nao encontrado!";
+        if (!repository.existsById(id)){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new DadosErroValidacao(new ErroDto("id", "Não foram encontrados dados para o ID informado.")));
+        }
+        Usuario model = repository.getReferenceById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(new DadosListagemUsuario(model));
+    }
+
     private List<ErroDto> validarDadosCadastro(DadosCadastroUsuarioDto dadosCadastro) {
         List<ErroDto> erros = new ArrayList<>();
+
+        if (repository.existsByCpf(dadosCadastro.getCpf())){
+            erros.add(new ErroDto("cpf", "CPF já cadastrado"));
+        }
         if (dadosCadastro.getNome() == null || dadosCadastro.getNome().isEmpty()){
             erros.add(new ErroDto("nome", "Campo obrigatório"));
         }

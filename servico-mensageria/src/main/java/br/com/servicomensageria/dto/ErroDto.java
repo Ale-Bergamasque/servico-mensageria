@@ -5,9 +5,9 @@ import lombok.Getter;
 @Getter
 public class ErroDto {
 
-    private String campo;
+    private final String campo;
 
-    private String mensagem;
+    private final String mensagem;
 
     public ErroDto(String campo, String mensagem){
         this.campo = campo;
