@@ -1,6 +1,11 @@
 package br.com.servicomensageria.service;
 
-import br.com.servicomensageria.dto.*;
+import br.com.servicomensageria.dto.DadosCadastroUsuarioDto;
+import br.com.servicomensageria.dto.DadosDetalhamentoUsuarioDto;
+import br.com.servicomensageria.dto.DadosErroValidacao;
+import br.com.servicomensageria.dto.DadosListagemUsuarioDto;
+import br.com.servicomensageria.dto.EmailUsuarioDto;
+import br.com.servicomensageria.dto.ErroDto;
 import br.com.servicomensageria.model.Usuario;
 import br.com.servicomensageria.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
@@ -78,6 +83,21 @@ public class UsuarioServiceImpl implements UsuarioService{
     public ResponseEntity<Page<DadosListagemUsuarioDto>> listarUsuarios(Pageable paginacao) {
         Page<DadosListagemUsuarioDto> model = repository.findAll(paginacao).map(DadosListagemUsuarioDto::new);
         return ResponseEntity.status(HttpStatus.OK).body(model);
+    }
+
+    @Override
+    @Transactional
+    public String cadastrarUsuarioMensageria(DadosCadastroUsuarioDto dadosCadastro) {
+        List<ErroDto> erros = validarDadosCadastro(dadosCadastro);
+        if (!erros.isEmpty()){
+            return "Todos os campos devem ser preenchidos e únicos.";
+        }
+
+        Usuario model = new Usuario(dadosCadastro);
+
+        repository.save(model);
+        return "Usuário cadastrado com sucesso! -> Id: " + model.getId() + " / Nome: " + model.getNome() + " / E-mail: "
+                + model.getEmail() + " / CPF: " + model.getCpf();
     }
 
     private List<ErroDto> validarDadosCadastro(DadosCadastroUsuarioDto dadosCadastro) {
