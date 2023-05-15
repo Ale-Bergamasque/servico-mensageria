@@ -17,4 +17,6 @@ public interface UsuarioService {
     ResponseEntity buscarUsuario(Long id);
 
     ResponseEntity<Page<DadosListagemUsuarioDto>> listarUsuarios(Pageable paginacao);
+
+    String cadastrarUsuarioMensageria(DadosCadastroUsuarioDto dadosCadastro);
 }
