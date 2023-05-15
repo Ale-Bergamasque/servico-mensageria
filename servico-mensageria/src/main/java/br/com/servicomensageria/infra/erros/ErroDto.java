@@ -1,4 +1,4 @@
-package br.com.servicomensageria.dto;
+package br.com.servicomensageria.infra.erros;
 
 import lombok.Getter;
 

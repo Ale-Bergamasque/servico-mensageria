@@ -1,4 +1,4 @@
-package br.com.servicomensageria.ampq;
+package br.com.servicomensageria.infra.ampq;
 
 import br.com.servicomensageria.dto.DadosCadastroUsuarioDto;
 import br.com.servicomensageria.service.UsuarioService;

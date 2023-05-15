@@ -1,4 +1,4 @@
-package br.com.servicomensageria.ampq;
+package br.com.servicomensageria.infra.ampq;
 
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;

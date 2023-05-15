@@ -1,5 +1,6 @@
 package br.com.servicomensageria.dto;
 
+import br.com.servicomensageria.infra.erros.ErroDto;
 import lombok.Getter;
 
 @Getter

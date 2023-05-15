@@ -5,7 +5,8 @@ import br.com.servicomensageria.dto.DadosDetalhamentoUsuarioDto;
 import br.com.servicomensageria.dto.DadosErroValidacao;
 import br.com.servicomensageria.dto.DadosListagemUsuarioDto;
 import br.com.servicomensageria.dto.EmailUsuarioDto;
-import br.com.servicomensageria.dto.ErroDto;
+import br.com.servicomensageria.infra.erros.ErroDto;
+import br.com.servicomensageria.infra.erros.ValidarDados;
 import br.com.servicomensageria.model.Usuario;
 import br.com.servicomensageria.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
@@ -16,7 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -25,10 +25,15 @@ public class UsuarioServiceImpl implements UsuarioService{
 
     private final UsuarioRepository repository;
 
+    private final ValidarDados validarDados;
+
     @Override
     @Transactional
     public ResponseEntity cadastroUsuario(DadosCadastroUsuarioDto dadosCadastro) {
-        List<ErroDto> erros = validarDadosCadastro(dadosCadastro);
+        if (repository.existsByCpf(dadosCadastro.getCpf())){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new DadosErroValidacao(new ErroDto("cpf", "CPF já cadastrado.")));
+        }
+        List<ErroDto> erros = validarDados.cadastro(dadosCadastro);
         if (!erros.isEmpty()){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erros.stream().map(DadosErroValidacao::new));
         }
@@ -71,9 +76,8 @@ public class UsuarioServiceImpl implements UsuarioService{
 
     @Override
     public ResponseEntity buscarUsuario(Long id) {
-        String mensagem = "ERROR: Id nao encontrado!";
         if (!repository.existsById(id)){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new DadosErroValidacao(new ErroDto("id", "Não foram encontrados dados para o ID informado.")));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new DadosErroValidacao(new ErroDto("id", "Usuário nao encontrado para o ID informado.")));
         }
         Usuario model = repository.getReferenceById(id);
         return ResponseEntity.status(HttpStatus.OK).body(new DadosListagemUsuarioDto(model));
@@ -88,9 +92,15 @@ public class UsuarioServiceImpl implements UsuarioService{
     @Override
     @Transactional
     public String cadastrarUsuarioMensageria(DadosCadastroUsuarioDto dadosCadastro) {
-        List<ErroDto> erros = validarDadosCadastro(dadosCadastro);
+        if (repository.existsByCpf(dadosCadastro.getCpf())){
+            return "CPF já cadastrado.";
+        }
+        if (repository.existsByEmail(dadosCadastro.getEmail())){
+            return "Email já cadastrado";
+        }
+        List<ErroDto> erros = validarDados.cadastro(dadosCadastro);
         if (!erros.isEmpty()){
-            return "Todos os campos devem ser preenchidos e únicos.";
+            return "Todos os campos devem ser preenchidos.";
         }
 
         Usuario model = new Usuario(dadosCadastro);
@@ -100,21 +110,4 @@ public class UsuarioServiceImpl implements UsuarioService{
                 + model.getEmail() + " / CPF: " + model.getCpf();
     }
 
-    private List<ErroDto> validarDadosCadastro(DadosCadastroUsuarioDto dadosCadastro) {
-        List<ErroDto> erros = new ArrayList<>();
-
-        if (repository.existsByCpf(dadosCadastro.getCpf())){
-            erros.add(new ErroDto("cpf", "CPF já cadastrado"));
-        }
-        if (dadosCadastro.getNome() == null || dadosCadastro.getNome().isEmpty()){
-            erros.add(new ErroDto("nome", "Campo obrigatório"));
-        }
-        if (dadosCadastro.getEmail() == null || dadosCadastro.getEmail().isEmpty()){
-            erros.add(new ErroDto("email", "Campo obrigatório"));
-        }
-        if (dadosCadastro.getCpf() == null || dadosCadastro.getCpf().isEmpty()){
-            erros.add(new ErroDto("cpf", "Campo obrigatório"));
-        }
-        return erros;
-    }
 }
