@@ -1,10 +1,12 @@
 package br.com.servicomensageria.infra.erros;
 
 import br.com.servicomensageria.dto.DadosCadastroUsuarioDto;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class ValidarDados {
 
     public List<ErroDto> cadastro(DadosCadastroUsuarioDto dadosCadastro) {
