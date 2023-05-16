@@ -47,7 +47,7 @@ public class UsuarioServiceImpl implements UsuarioService{
 
     @Override
     @Transactional
-    public ResponseEntity excluirUsuário(Long id) {
+    public ResponseEntity excluirUsuario(Long id) {
         if(!repository.existsById(id)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
         }

@@ -1,18 +1,23 @@
 package br.com.servicomensageria.service;
 
+import br.com.servicomensageria.dto.DadosCadastroUsuarioDto;
 import br.com.servicomensageria.dto.EmailUsuarioDto;
+import br.com.servicomensageria.infra.erros.ErroDto;
+import br.com.servicomensageria.infra.erros.ValidarDados;
 import br.com.servicomensageria.model.Usuario;
 import br.com.servicomensageria.repository.UsuarioRepository;
+import org.jeasy.random.EasyRandom;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.jeasy.random.EasyRandom;
 
 import java.util.Optional;
 
+import static java.util.Collections.EMPTY_LIST;
+import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
@@ -30,29 +35,31 @@ public class UsuarioServiceImplTest {
     @Mock
     private UsuarioRepository repository;
 
+    @Mock
+    private ValidarDados validarDados;
+
     @Test
-    public void deveriaExcluirUsuárioComSucesso() {
+    public void deveriaExcluirUsuarioComSucesso() {
         doReturn(true).when(repository).existsById(ID);
 
-        service.excluirUsuário(ID);
+        service.excluirUsuario(ID);
 
         verify(repository, atLeastOnce()).deleteById(ID);;
     }
 
     @Test
-    public void naoDeveriaExcluirUsuárioComSucesso() {
+    public void naoDeveriaExcluirUsuarioInexistente() {
         doReturn(false).when(repository).existsById(ID);
 
-        service.excluirUsuário(ID);
+        service.excluirUsuario(ID);
 
         verify(repository, never()).deleteById(ID);;
     }
 
     @Test
-    public void deveriaAtualizarUsuárioComSucesso() {
+    public void deveriaAtualizarUsuarioComSucesso() {
         String email = "123@email.com";
         EmailUsuarioDto novoEmail = new EmailUsuarioDto(email);
-        Usuario usuario = new Usuario();
         Usuario usuarioOptional = new EasyRandom().nextObject(Usuario.class);
 
         doReturn(true).when(repository).existsById(ID);
@@ -61,11 +68,81 @@ public class UsuarioServiceImplTest {
 
         service.atualilzarEmailUsuario(ID, novoEmail);
 
-        //TODO ajustar teste
-
-        Assertions.assertEquals(email, usuario.getEmail());
-        verify(repository, atLeastOnce()).save(usuario);
+        Assertions.assertEquals(email, usuarioOptional.getEmail());
+        verify(repository, atLeastOnce()).save(any());
     }
 
+    @Test
+    public void naoDeveriaAtualizarUsuarioComEmailExistente() {
+        String email = "123@email.com";
+        EmailUsuarioDto novoEmail = new EmailUsuarioDto(email);
 
+        doReturn(true).when(repository).existsById(ID);
+        doReturn(true).when(repository).existsByEmail(email);
+
+        service.atualilzarEmailUsuario(ID, novoEmail);
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    public void naoDeveriaAtualizarUsuarioInexistente() {
+        String email = "123@email.com";
+        EmailUsuarioDto novoEmail = new EmailUsuarioDto(email);
+
+        doReturn(false).when(repository).existsById(ID);
+
+        service.atualilzarEmailUsuario(ID, novoEmail);
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    public void naoDeveriaCadastrarUsuarioPorMensageriaComSucesso() {
+        DadosCadastroUsuarioDto dados = new EasyRandom().nextObject(DadosCadastroUsuarioDto.class);
+
+        doReturn(false).when(repository).existsByCpf(dados.getCpf());
+        doReturn(false).when(repository).existsByEmail(dados.getEmail());
+        doReturn(EMPTY_LIST).when(validarDados).cadastro(dados);
+
+        service.cadastrarUsuarioMensageria(dados);
+
+        verify(repository, atLeastOnce()).save(any());;
+    }
+
+    @Test
+    public void deveriaCadastrarUsuarioPorMensageriaComEmailExistente() {
+        DadosCadastroUsuarioDto dados = new EasyRandom().nextObject(DadosCadastroUsuarioDto.class);
+
+        doReturn(false).when(repository).existsByCpf(dados.getCpf());
+        doReturn(true).when(repository).existsByEmail(dados.getEmail());
+
+        service.cadastrarUsuarioMensageria(dados);
+
+        verify(repository, never()).save(any());;
+    }
+
+    @Test
+    public void deveriaCadastrarUsuarioPorMensageriaComCpfExistente() {
+        DadosCadastroUsuarioDto dados = new EasyRandom().nextObject(DadosCadastroUsuarioDto.class);
+
+        doReturn(true).when(repository).existsByCpf(dados.getCpf());
+
+        service.cadastrarUsuarioMensageria(dados);
+
+        verify(repository, never()).save(any());;
+    }
+
+    @Test
+    public void deveriaCadastrarUsuarioPorMensageriaComCamposVazios() {
+        DadosCadastroUsuarioDto dados = new EasyRandom().nextObject(DadosCadastroUsuarioDto.class);
+
+        doReturn(false).when(repository).existsByCpf(dados.getCpf());
+        doReturn(false).when(repository).existsByEmail(dados.getEmail());
+        doReturn(singletonList(new ErroDto("Nome", "Erro"))).when(validarDados).cadastro(dados);
+
+        service.cadastrarUsuarioMensageria(dados);
+
+        verify(repository, never()).save(any());;
+    }
 }

@@ -29,7 +29,7 @@ public class UsuarioController {
     @Operation(summary = "Deletar", description = "Deletar usuario por ID.")
 
     public ResponseEntity deletarUsuario(@PathVariable Long id) {
-        return service.excluirUsuário(id);
+        return service.excluirUsuario(id);
     }
 
     @PatchMapping("/{id}")

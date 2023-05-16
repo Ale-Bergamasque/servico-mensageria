@@ -9,7 +9,7 @@ import br.com.servicomensageria.dto.EmailUsuarioDto;
 
 public interface UsuarioService {
 
-    ResponseEntity excluirUsuário(Long id);
+    ResponseEntity excluirUsuario(Long id);
     ResponseEntity atualilzarEmailUsuario(Long id, EmailUsuarioDto dto);
 
     ResponseEntity cadastroUsuario(DadosCadastroUsuarioDto dadosCadastro);
