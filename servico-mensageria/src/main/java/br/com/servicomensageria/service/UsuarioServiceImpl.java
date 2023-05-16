@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -58,6 +59,7 @@ public class UsuarioServiceImpl implements UsuarioService{
     @Override
     @Transactional
     public ResponseEntity atualilzarEmailUsuario(Long id, EmailUsuarioDto dto) {
+        Usuario usuario = new Usuario();
         if (!repository.existsById(id)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
         }
@@ -66,9 +68,12 @@ public class UsuarioServiceImpl implements UsuarioService{
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuario com o email " + dto.getEmail() + " já cadastrado!");
         }
 
-        Usuario usuario = repository.findById(id).get();
+        Optional<Usuario> usuarioOptional = repository.findById(id);
 
-        usuario.setEmail(dto.getEmail());
+        if (usuarioOptional.isPresent()) {
+            usuario = usuarioOptional.get();
+            usuario.setEmail(dto.getEmail());
+        }
 
         repository.save(usuario);
         return ResponseEntity.status(HttpStatus.OK).body("Usuário atualizado com sucesso!");
