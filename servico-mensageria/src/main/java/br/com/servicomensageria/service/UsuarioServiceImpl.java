@@ -34,6 +34,9 @@ public class UsuarioServiceImpl implements UsuarioService{
         if (repository.existsByCpf(dadosCadastro.getCpf())){
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new DadosErroValidacao(new ErroDto("cpf", "CPF já cadastrado.")));
         }
+        if (repository.existsByEmail(dadosCadastro.getEmail())){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new DadosErroValidacao(new ErroDto("email", "Email já cadastrado.")));
+        }
         List<ErroDto> erros = validarDados.cadastro(dadosCadastro);
         if (!erros.isEmpty()){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erros.stream().map(DadosErroValidacao::new));

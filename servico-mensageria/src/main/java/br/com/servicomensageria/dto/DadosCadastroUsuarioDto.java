@@ -1,9 +1,8 @@
 package br.com.servicomensageria.dto;
 
+import lombok.Data;
 
-import lombok.Getter;
-
-@Getter
+@Data
 public class DadosCadastroUsuarioDto {
 
     private String nome;

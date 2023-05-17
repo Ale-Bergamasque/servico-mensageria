@@ -1,6 +1,5 @@
 package br.com.servicomensageria.controller;
 
-
 import br.com.servicomensageria.dto.DadosCadastroUsuarioDto;
 import br.com.servicomensageria.dto.DadosListagemUsuarioDto;
 import br.com.servicomensageria.dto.EmailUsuarioDto;
@@ -27,7 +26,6 @@ public class UsuarioController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Deletar", description = "Deletar usuario por ID.")
-
     public ResponseEntity deletarUsuario(@PathVariable Long id) {
         return service.excluirUsuario(id);
     }
