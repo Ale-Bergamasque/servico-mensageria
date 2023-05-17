@@ -62,7 +62,11 @@ public class UsuarioServiceImpl implements UsuarioService{
     @Override
     @Transactional
     public ResponseEntity atualilzarEmailUsuario(Long id, EmailUsuarioDto dto) {
-        Usuario usuario = new Usuario();
+
+        if (dto.getEmail().isEmpty() || dto.getEmail().trim().equals("")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("O campo email deve ser preenchido.");
+        }
+
         if (!repository.existsById(id)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
         }
@@ -71,6 +75,7 @@ public class UsuarioServiceImpl implements UsuarioService{
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuario com o email " + dto.getEmail() + " já cadastrado!");
         }
 
+        Usuario usuario = new Usuario();
         Optional<Usuario> usuarioOptional = repository.findById(id);
 
         if (usuarioOptional.isPresent()) {
