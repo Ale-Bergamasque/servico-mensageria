@@ -9,20 +9,23 @@ import br.com.servicomensageria.repository.UsuarioRepository;
 import org.jeasy.random.EasyRandom;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UsuarioServiceImplTest {
@@ -44,7 +47,7 @@ public class UsuarioServiceImplTest {
 
         service.excluirUsuario(ID);
 
-        verify(repository, atLeastOnce()).deleteById(ID);;
+        verify(repository, atLeastOnce()).deleteById(ID);
     }
 
     @Test
@@ -53,7 +56,7 @@ public class UsuarioServiceImplTest {
 
         service.excluirUsuario(ID);
 
-        verify(repository, never()).deleteById(ID);;
+        verify(repository, never()).deleteById(ID);
     }
 
     @Test
@@ -107,7 +110,7 @@ public class UsuarioServiceImplTest {
 
         service.cadastrarUsuarioMensageria(dados);
 
-        verify(repository, atLeastOnce()).save(any());;
+        verify(repository, atLeastOnce()).save(any());
     }
 
     @Test
@@ -119,7 +122,7 @@ public class UsuarioServiceImplTest {
 
         service.cadastrarUsuarioMensageria(dados);
 
-        verify(repository, never()).save(any());;
+        verify(repository, never()).save(any());
     }
 
     @Test
@@ -130,7 +133,7 @@ public class UsuarioServiceImplTest {
 
         service.cadastrarUsuarioMensageria(dados);
 
-        verify(repository, never()).save(any());;
+        verify(repository, never()).save(any());
     }
 
     @Test
@@ -143,6 +146,93 @@ public class UsuarioServiceImplTest {
 
         service.cadastrarUsuarioMensageria(dados);
 
-        verify(repository, never()).save(any());;
+        verify(repository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("Deveria cadastrar o usuario com sucesso")
+    public void cadastrarUsuarioComSucesso() {
+        DadosCadastroUsuarioDto dadosCadastro = new EasyRandom().nextObject(DadosCadastroUsuarioDto.class);
+
+        List<ErroDto> erros = new ArrayList<>();
+
+        when(repository.existsByCpf(dadosCadastro.getCpf())).thenReturn(false);
+        when(validarDados.cadastro(dadosCadastro)).thenReturn(erros);
+
+        service.cadastroUsuario(dadosCadastro);
+
+        verify(repository, atLeastOnce()).save(any());
+    }
+
+    @Test
+    @DisplayName("Nao deveria cadastrar o usuario por falha no preenchimento dos campos de cadastro")
+    public void naoDeveriaCadastrar(){
+        DadosCadastroUsuarioDto dadosCadastroUsuario = new EasyRandom().nextObject(DadosCadastroUsuarioDto.class);
+
+        List<ErroDto> erros = new ArrayList<>();
+        erros.add(0, new ErroDto("campo", "mensagem"));
+
+        when(repository.existsByCpf(dadosCadastroUsuario.getCpf())).thenReturn(false);
+        when(validarDados.cadastro(dadosCadastroUsuario)).thenReturn(erros);
+
+        service.cadastroUsuario(dadosCadastroUsuario);
+
+        verify(validarDados, atLeastOnce()).cadastro(dadosCadastroUsuario);
+    }
+
+    @Test
+    @DisplayName("Nao deveria cadastrar o usuario por existir usuario com o mesmo CPF no banco")
+    public void naoDeveriaCadastrarCpfExistente(){
+        DadosCadastroUsuarioDto dadosCadastroUsuario = new EasyRandom().nextObject(DadosCadastroUsuarioDto.class);
+
+        when(repository.existsByCpf(dadosCadastroUsuario.getCpf())).thenReturn(true);
+
+        ResponseEntity response_method = service.cadastroUsuario(dadosCadastroUsuario);
+
+        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.CONFLICT).body("teste");
+
+        assertThat(response_method.getStatusCode()).isEqualTo(response.getStatusCode());
+        verify(repository, atLeastOnce()).existsByCpf(dadosCadastroUsuario.getCpf());
+    }
+
+    @Test
+    @DisplayName("Nao deveria cadastrar o usuario por existir usuario com o mesmo Email no banco")
+    public void naoDeveriaCadastrarEmailExistente(){
+        DadosCadastroUsuarioDto dadosCadastroUsuario = new EasyRandom().nextObject(DadosCadastroUsuarioDto.class);
+
+        when(repository.existsByCpf(dadosCadastroUsuario.getCpf())).thenReturn(false);
+        when(repository.existsByEmail(dadosCadastroUsuario.getEmail())).thenReturn(true);
+
+        ResponseEntity resposta = service.cadastroUsuario(dadosCadastroUsuario);
+
+        ResponseEntity<String> codigoEsperado = ResponseEntity.status(HttpStatus.CONFLICT).body("teste");
+
+        assertThat(resposta.getStatusCode()).isEqualTo(codigoEsperado.getStatusCode());
+        verify(repository, atLeastOnce()).existsByEmail(dadosCadastroUsuario.getEmail());
+    }
+
+    @Test
+    @DisplayName("Deveria retornar os dados do usuario")
+    public void deveriaRetornarDadosUsuario(){
+        Usuario usuario = new EasyRandom().nextObject(Usuario.class);
+        when(repository.getReferenceById(ID)).thenReturn(usuario);
+        when(repository.existsById(ID)).thenReturn(true);
+
+        service.buscarUsuario(ID);
+
+        verify(repository, atLeastOnce()).getReferenceById(ID);
+    }
+
+    @Test
+    @DisplayName("Nao deveria retornar os dados do usuario por nao existir no banco")
+    public void naoDeveriaRetornarDadosUsuario(){
+        when(repository.existsById(ID)).thenReturn(false);
+
+        ResponseEntity resposta = service.buscarUsuario(ID);
+
+        ResponseEntity<String> codigoEsperado = ResponseEntity.status(HttpStatus.NOT_FOUND).body("");
+        verify(repository, atLeastOnce()).existsById(ID);
+        assertThat(resposta.getStatusCode()).isEqualTo(codigoEsperado.getStatusCode());
+    }
+
 }

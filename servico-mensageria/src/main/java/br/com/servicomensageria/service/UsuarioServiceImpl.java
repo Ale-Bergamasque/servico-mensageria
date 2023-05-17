@@ -42,7 +42,7 @@ public class UsuarioServiceImpl implements UsuarioService{
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erros.stream().map(DadosErroValidacao::new));
         }
 
-        Usuario model = new Usuario(dadosCadastro);
+        Usuario model = DadosCadastroUsuarioDto.criaUsuario(dadosCadastro);
 
         repository.save(model);
         return ResponseEntity.status(HttpStatus.CREATED).body(new DadosDetalhamentoUsuarioDto(model));
@@ -111,7 +111,7 @@ public class UsuarioServiceImpl implements UsuarioService{
             return "Todos os campos devem ser preenchidos.";
         }
 
-        Usuario model = new Usuario(dadosCadastro);
+        Usuario model = DadosCadastroUsuarioDto.criaUsuario(dadosCadastro);
 
         repository.save(model);
         return "Usuário cadastrado com sucesso! -> Id: " + model.getId() + " / Nome: " + model.getNome() + " / E-mail: "

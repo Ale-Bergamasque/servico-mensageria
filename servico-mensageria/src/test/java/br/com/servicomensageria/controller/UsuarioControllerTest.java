@@ -5,6 +5,8 @@ import br.com.servicomensageria.dto.DadosDetalhamentoUsuarioDto;
 import br.com.servicomensageria.dto.DadosListagemUsuarioDto;
 import br.com.servicomensageria.model.Usuario;
 import br.com.servicomensageria.service.UsuarioService;
+import lombok.var;
+import org.jeasy.random.EasyRandom;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @SpringBootTest
 @AutoConfigureMockMvc
 @AutoConfigureJsonTesters
-public class UsuarioControllerTest {
+class UsuarioControllerTest {
 
     @Autowired
     private MockMvc mvc;
@@ -46,17 +48,10 @@ public class UsuarioControllerTest {
 
     @Test
     @DisplayName("Deveria devolver codigo HTTP 201 indicando que o usuario foi cadastrado com sucesso")
-    public void cadastrar_Created() throws Exception {
-        DadosCadastroUsuarioDto dadosCadastroUsuario = new DadosCadastroUsuarioDto();
-        dadosCadastroUsuario.setNome("teste");
-        dadosCadastroUsuario.setEmail("@teste.com");
-        dadosCadastroUsuario.setCpf("123456");
+    void cadastrar_Created() throws Exception {
+        DadosCadastroUsuarioDto dadosCadastroUsuario = criarDadosCadastro();
 
-        Usuario usuario = new Usuario();
-        usuario.setId(1L);
-        usuario.setNome(dadosCadastroUsuario.getNome());
-        usuario.setEmail(dadosCadastroUsuario.getEmail());
-        usuario.setCpf(dadosCadastroUsuario.getCpf());
+        Usuario usuario = criarUsuario(dadosCadastroUsuario);
 
         DadosDetalhamentoUsuarioDto dadosDetalhamentoUsuario = new DadosDetalhamentoUsuarioDto(usuario);
 
@@ -84,11 +79,11 @@ public class UsuarioControllerTest {
 
     @Test
     @DisplayName("Deveria retornar codigo 400 quando informações estão inválidas")
-    public void cadastrar_BadRequest() throws Exception {
+    void cadastrar_BadRequest() throws Exception {
         MockHttpServletResponse response =
                 mvc.perform(post("/usuario"))
-                .andReturn()
-                .getResponse();
+                        .andReturn()
+                        .getResponse();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
     }
@@ -96,16 +91,9 @@ public class UsuarioControllerTest {
     @Test
     @DisplayName("Deveria retornar codigo HTTP 200")
     void buscarUsuario_Ok() throws Exception {
-        DadosCadastroUsuarioDto dadosCadastroUsuario = new DadosCadastroUsuarioDto();
-        dadosCadastroUsuario.setNome("teste");
-        dadosCadastroUsuario.setEmail("@teste.com");
-        dadosCadastroUsuario.setCpf("123456");
+        DadosCadastroUsuarioDto dadosCadastroUsuario = criarDadosCadastro();
 
-        Usuario usuario = new Usuario();
-        usuario.setId(1L);
-        usuario.setNome(dadosCadastroUsuario.getNome());
-        usuario.setEmail(dadosCadastroUsuario.getEmail());
-        usuario.setCpf(dadosCadastroUsuario.getCpf());
+        Usuario usuario = criarUsuario(dadosCadastroUsuario);
 
         DadosListagemUsuarioDto dadosListagemUsuario = new DadosListagemUsuarioDto(usuario);
 
@@ -119,7 +107,7 @@ public class UsuarioControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(dadosListagemUsuarioJSON.write(
                                         dadosListagemUsuario
-                        ).getJson()))
+                                ).getJson()))
                         .andReturn()
                         .getResponse();
 
@@ -129,6 +117,19 @@ public class UsuarioControllerTest {
                 .write(dadosListagemUsuario)
                 .getJson();
         assertThat(response.getContentAsString()).isEqualTo(jsonEsperado);
+    }
+
+    private Usuario criarUsuario(DadosCadastroUsuarioDto dadosCadastroUsuario) {
+        Usuario usuario = new Usuario();
+        usuario.setId(1L);
+        usuario.setNome(dadosCadastroUsuario.getNome());
+        usuario.setEmail(dadosCadastroUsuario.getEmail());
+        usuario.setCpf(dadosCadastroUsuario.getCpf());
+        return usuario;
+    }
+
+    private DadosCadastroUsuarioDto criarDadosCadastro() {
+        return new EasyRandom().nextObject(DadosCadastroUsuarioDto.class);
     }
 
 }
